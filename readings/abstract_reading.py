@@ -60,7 +60,7 @@ class AbstractReading:
         self._sequence_num = sequence_num
 
     def to_json(self):
-        """ Returns json string with reading data """
+        """ Returns json object with reading data """
 
         reading_manager_data = {
             "timestamp": str(self.get_timestamp()),

@@ -79,15 +79,14 @@ def delete_reading(reading_type, seq_num):
     """ Delete a reading from csv file based on sequence number """
 
     if reading_type == "temperature":
-        temp_reading_manager = TemperatureReadingManager(temp_readings_file)
-        temp_reading_manager.delete_reading(seq_num)
-        response = app.response_class(status=200)
+        reading_manager = TemperatureReadingManager(temp_readings_file)
     elif reading_type == "pressure":
-        pres_reading_manager = PressureReadingManager(pres_readings_file)
-        pres_reading_manager.delete_reading(seq_num)
-        response = app.response_class(status=200)
+        reading_manager = PressureReadingManager(pres_readings_file)
     else:
-        response = app.response_class(status=400)
+        return app.response_class(status=400)
+
+    reading_manager.delete_reading(seq_num)
+    response = app.response_class(status=200)
     
     return response
 
@@ -96,26 +95,19 @@ def get_reading(reading_type, seq_num):
     """ Get a reading from csv file based on sequence number """
 
     if reading_type == "temperature":
-        temp_reading_manager = TemperatureReadingManager(temp_readings_file)
-        temp_reading = temp_reading_manager.get_reading(seq_num)
-        json_reading = temp_reading.to_json()
-        response = app.response_class(
-            response=json_reading,
-            status=200,
-            mimetype="application/json"
-        )
+        reading_manager = TemperatureReadingManager(temp_readings_file)
     elif reading_type == "pressure":
-        pres_reading_manager = PressureReadingManager(pres_readings_file)
-        pres_reading = pres_reading_manager.get_reading(seq_num)
-        json_reading = pres_reading.to_json()
-        response = app.response_class(
-            response=json_reading,
-            status=200,
-            mimetype="application/json"
-        )
+        reading_manager = PressureReadingManager(pres_readings_file)
     else:
-        response = app.response_class(status=400)
-    
+        return app.response_class(status=400)
+
+    reading = reading_manager.get_reading(seq_num)
+    json_reading = reading.to_json()
+    response = app.response_class(
+        response=json_reading,
+        status=200,
+        mimetype="application/json"
+    )
     return response
 
 

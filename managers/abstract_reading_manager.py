@@ -40,8 +40,6 @@ class AbstractReadingManager:
                 self._readings.pop(i)
         self._write_readings_to_file()
 
-        
-
     def get_reading(self, seq_num):
         """ Returns reading that mathes sequence number from a scv file """
 
