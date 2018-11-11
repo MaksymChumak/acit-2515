@@ -13,14 +13,19 @@ pres_readings_file = "data/pressure_readings.csv"
 
 app = Flask(__name__)
 
-@app.route("/sensor/<string:reading_type>/reading", methods=["POST"])
-def add_reading(reading_type):
+@app.route("/sensor/<string:sensor_type>/reading", methods=["POST"])
+def add_reading(sensor_type):
     """ Assigns a sequence number to the reading and returns the created reading """
 
+    if sensor_type == "temperature":
+        reading_manager = TemperatureReadingManager(temp_readings_file)
+    elif sensor_type == "pressure":
+        reading_manager = PressureReadingManager(pres_readings_file)
+    else:
+        return app.response_class(status=400)    
+
     json_reading = request.get_json(silent=True)
-    objects = extract_data_from_json(reading_type, json_reading)
-    reading_manager = objects[0]
-    reading = objects[1]
+    reading = create_reading(sensor_type, json_reading)
     if reading:
         reading_manager.add_reading(reading)
         new_json_reading = reading.to_json()
@@ -34,14 +39,19 @@ def add_reading(reading_type):
 
     return response
 
-@app.route("/sensor/<string:reading_type>/reading/<int:seq_num>", methods=["PUT"])
-def update_reading(reading_type, seq_num):
+@app.route("/sensor/<string:sensor_type>/reading/<int:seq_num>", methods=["PUT"])
+def update_reading(sensor_type, seq_num):
     """ Updates a reading based on sequence number """
 
+    if sensor_type == "temperature":
+        reading_manager = TemperatureReadingManager(temp_readings_file)
+    elif sensor_type == "pressure":
+        reading_manager = PressureReadingManager(pres_readings_file)
+    else:
+        return app.response_class(status=400)
+
     json_reading = request.get_json(silent=True)
-    objects = extract_data_from_json(reading_type, json_reading, seq_num)
-    reading_manager = objects[0]
-    reading = objects[1]
+    reading = create_reading(sensor_type, json_reading, seq_num)
 
     if reading:
         if reading_manager.update_reading(reading):
@@ -53,13 +63,13 @@ def update_reading(reading_type, seq_num):
 
     return response
 
-@app.route("/sensor/<string:reading_type>/reading/<int:seq_num>", methods=["DELETE"])
-def delete_reading(reading_type, seq_num):
+@app.route("/sensor/<string:sensor_type>/reading/<int:seq_num>", methods=["DELETE"])
+def delete_reading(sensor_type, seq_num):
     """ Delete a reading from csv file based on sequence number """
 
-    if reading_type == "temperature":
+    if sensor_type == "temperature":
         reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif reading_type == "pressure":
+    elif sensor_type == "pressure":
         reading_manager = PressureReadingManager(pres_readings_file)
     else:
         return app.response_class(status=400)
@@ -71,13 +81,13 @@ def delete_reading(reading_type, seq_num):
     
     return response
 
-@app.route("/sensor/<string:reading_type>/reading/<int:seq_num>", methods=["GET"])
-def get_reading(reading_type, seq_num):
+@app.route("/sensor/<string:sensor_type>/reading/<int:seq_num>", methods=["GET"])
+def get_reading(sensor_type, seq_num):
     """ Get a reading from csv file based on sequence number """
 
-    if reading_type == "temperature":
+    if sensor_type == "temperature":
         reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif reading_type == "pressure":
+    elif sensor_type == "pressure":
         reading_manager = PressureReadingManager(pres_readings_file)
     else:
         return app.response_class(status=400)
@@ -93,22 +103,25 @@ def get_reading(reading_type, seq_num):
     else:
         return app.response_class(status=404, response="Reading is not found")
 
-@app.route("/sensor/<string:reading_type>/reading/all", methods=["GET"])
-def get_all_readings(reading_type):
+@app.route("/sensor/<string:sensor_type>/reading/all", methods=["GET"])
+def get_all_readings(sensor_type):
     """ Get a reading from csv file based on sequence number """
 
-    if reading_type == "temperature":
+    if sensor_type == "temperature":
         reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif reading_type == "pressure":
+    elif sensor_type == "pressure":
         reading_manager = PressureReadingManager(pres_readings_file)
     else:
         return app.response_class(status=400)
     
     readings = reading_manager.get_all_readings()
-    json_readings = []
+    dict_readings = []
     for reading in readings:
-        json_reading = reading.to_json()
-        json_readings.append(json_reading)
+        # Convert reading object to a dictionary with values converted to a string
+        reading_dict = dict((attr.replace("_", ""), str(v)) for attr, v in reading.__dict__.items())
+        dict_readings.append(reading_dict)
+
+    json_readings = json.dumps(dict_readings)
 
     response = app.response_class(
         response=json_readings,
@@ -118,23 +131,26 @@ def get_all_readings(reading_type):
     
     return response
 
-def extract_data_from_json(reading_type, json_reading, seq_num=0):
+def create_reading(sensor_type, json_reading, seq_num=0):
     """ Creates and returns tuple containing reading and reading manager """
 
-    if reading_type == "temperature" and json_reading:
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-        reading = TemperatureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M:%S.%f"),
-                        seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]), 
-                        float(json_reading["max"]), json_reading["status"])
-    elif reading_type == "pressure" and json_reading:
-        reading_manager = PressureReadingManager(pres_readings_file)
-        reading = PressureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M"),
+    if sensor_type == "temperature":    
+        try:
+            reading = TemperatureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M:%S.%f"),
+                            seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]), 
+                            float(json_reading["max"]), json_reading["status"])
+        except:
+            return None
+
+    if sensor_type == "pressure":
+        try:
+            reading = PressureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M"),
                         seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]),
                         float(json_reading["max"]), json_reading["status"])
-    else:
-        reading = None
-
-    return (reading_manager, reading)
+        except:
+            return None
+        
+    return reading
     
 
 

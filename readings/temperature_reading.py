@@ -4,7 +4,6 @@ from readings.abstract_reading import AbstractReading
 class TemperatureReading(AbstractReading):
     """ Concrete Implementation of a Temperature Reading """
 
-    # CONSTANTS
     HIGH_TEMP_ERROR = "HIGH_TEMP"
     LOW_TEMP_ERROR = "LOW_TEMP"
     STATUS_OK = "OK"
