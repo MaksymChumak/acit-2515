@@ -26,26 +26,35 @@ class AbstractReadingManager:
     def update_reading(self, reading):
         """ Updates reading in a csv file """
 
+        count = 0
         for i, r in enumerate(self._readings):
             if r.get_sequence_num() == reading.get_sequence_num():
                 self._readings[i] = reading
+                count += 1
         self._write_readings_to_file()
+        return count
 
 
     def delete_reading(self, seq_num):
         """ Deletes reading from a csv file """
-
+        
+        count = 0
         for i, r in enumerate(self._readings):
             if r.get_sequence_num() == seq_num:
                 self._readings.pop(i)
+                count += 1
         self._write_readings_to_file()
+        return count
 
     def get_reading(self, seq_num):
         """ Returns reading that mathes sequence number from a scv file """
 
-        for reading in self._readings:
-            if reading.get_sequence_num() == seq_num:
-                return reading
+        reading = None
+        for r in self._readings:
+            if r.get_sequence_num() == seq_num:
+                reading = r
+        return reading
+        
     
     def get_all_readings(self):
         """ Returns a list of all readings """

@@ -44,8 +44,10 @@ def update_reading(reading_type, seq_num):
     reading = objects[1]
 
     if reading:
-        reading_manager.update_reading(reading)
-        response = app.response_class(status=200)
+        if reading_manager.update_reading(reading):
+            response = app.response_class(status=200)
+        else:
+            response = app.response_class(status=403, response="Reading is not found")  
     else:
         response = app.response_class(status=400)
 
@@ -62,8 +64,10 @@ def delete_reading(reading_type, seq_num):
     else:
         return app.response_class(status=400)
 
-    reading_manager.delete_reading(seq_num)
-    response = app.response_class(status=200)
+    if reading_manager.delete_reading(seq_num):
+        response = app.response_class(status=200)
+    else:
+        response = app.response_class(status=403, response="Reading is not found")
     
     return response
 
@@ -79,14 +83,15 @@ def get_reading(reading_type, seq_num):
         return app.response_class(status=400)
 
     reading = reading_manager.get_reading(seq_num)
-    json_reading = reading.to_json()
-    response = app.response_class(
-        response=json_reading,
-        status=200,
-        mimetype="application/json"
-    )
-    return response
-
+    if reading:
+        json_reading = reading.to_json()
+        return app.response_class(
+            response=json_reading,
+            status=200,
+            mimetype="application/json"
+        )
+    else:
+        return app.response_class(status=403, response="Reading is not found")
 
 @app.route("/sensor/<string:reading_type>/reading/all", methods=["GET"])
 def get_all_readings(reading_type):
@@ -114,7 +119,7 @@ def get_all_readings(reading_type):
     return response
 
 def extract_data_from_json(reading_type, json_reading, seq_num=0):
-    """ Creates and returns reading and reading manager from json object """
+    """ Creates and returns tuple containing reading and reading manager """
 
     if reading_type == "temperature" and json_reading:
         reading_manager = TemperatureReadingManager(temp_readings_file)
