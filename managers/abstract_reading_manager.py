@@ -17,6 +17,9 @@ class AbstractReadingManager:
     def add_reading(self, reading):
         """ Adds reading to a csv file """
 
+        if not reading:
+            return None
+
         # Set new reading's seq num to largest sequence number in the readings list + 1
         for r in self._readings:
             if r.get_sequence_num() > reading.get_sequence_num():
@@ -29,6 +32,9 @@ class AbstractReadingManager:
 
     def update_reading(self, reading):
         """ Updates reading in a csv file """
+        
+        if not reading:
+            return None
 
         count = 0
         for i, r in enumerate(self._readings):

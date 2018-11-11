@@ -6,7 +6,6 @@ import csv
 class PressureReadingManager(AbstractReadingManager):
     """ Pressure Reading Manager """
 
-    # CONSTANTS
     TIMESTAMP_INDEX = 0
     SENSOR_NAME_INDEX = 1
     SEQ_NUM_INDEX = 2
@@ -19,28 +18,37 @@ class PressureReadingManager(AbstractReadingManager):
     def _load_reading_row(self, row):
         """ Loads list into a PressureReading object """
 
-        reading_datetime = datetime.datetime.strptime(row[PressureReadingManager.TIMESTAMP_INDEX], "%Y-%m-%d %H:%M:%S")
-        pres_reading =  PressureReading(reading_datetime,
-                               int(row[PressureReadingManager.SEQ_NUM_INDEX]),
-                               row[PressureReadingManager.SENSOR_NAME_INDEX],
-                               float(row[PressureReadingManager.MIN_INDEX]),
-                               float(row[PressureReadingManager.AVG_INDEX]),
-                               float(row[PressureReadingManager.MAX_INDEX]),
-                               row[PressureReadingManager.STATUS_INDEX])
+        try:
+            reading_datetime = datetime.datetime.strptime(row[PressureReadingManager.TIMESTAMP_INDEX], "%Y-%m-%d %H:%M:%S")
+            pres_reading =  PressureReading(reading_datetime,
+                                int(row[PressureReadingManager.SEQ_NUM_INDEX]),
+                                row[PressureReadingManager.SENSOR_NAME_INDEX],
+                                float(row[PressureReadingManager.MIN_INDEX]),
+                                float(row[PressureReadingManager.AVG_INDEX]),
+                                float(row[PressureReadingManager.MAX_INDEX]),
+                                row[PressureReadingManager.STATUS_INDEX])
+        except:
+            raise ValueError("Invalid data entry")
 
         return pres_reading
 
     def _reading_to_list(self, reading):
-        """ Returns reading object formated as list """
+        """ Returns reading object formated as list of strings """
 
-        pres_reading = [reading.get_timestamp(), reading.get_sensor_model(), 
-                        reading.get_sequence_num(), reading.get_min_value(), 
-                        reading.get_avg_value(), reading.get_max_value(), reading.get_status()]
+        try:
+            pres_reading = [str(reading.get_timestamp()), reading.get_sensor_model(), 
+                            str(reading.get_sequence_num()), str(reading.get_min_value()), 
+                            str(reading.get_avg_value()), str(reading.get_max_value()), reading.get_status()]
+        except:
+            raise ValueError("Invalid data entry")
 
         return pres_reading
 
     def _write_reading_row(self, reading):
         """ Writes reading to a csv file """
+
+        if not reading:
+            raise ValueError("Invalid data entry")
 
         pres_reading = self._reading_to_list(reading)
         
