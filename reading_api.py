@@ -13,39 +13,23 @@ pres_readings_file = "data/pressure_readings.csv"
 
 app = Flask(__name__)
 
-# CONSTANTS
-DEFAULT_SEQ_NUM = 0
-
 @app.route("/sensor/<string:reading_type>/reading", methods=["POST"])
 def add_reading(reading_type):
     """ Assigns a sequence number to the reading and returns the created reading """
 
     json_reading = request.get_json(silent=True)
-    if reading_type == "temperature":
-        temp_reading_manager = TemperatureReadingManager(temp_readings_file)
-        reading = TemperatureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M:%S.%f"),
-                        DEFAULT_SEQ_NUM, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]), 
-                        float(json_reading["max"]), json_reading["status"])
-        temp_reading_manager.add_reading(reading)
+    objects = extract_data_from_json(reading_type, json_reading)
+    reading_manager = objects[0]
+    reading = objects[1]
+    if reading:
+        reading_manager.add_reading(reading)
         new_json_reading = reading.to_json()
         response = app.response_class(
             response=new_json_reading,
             status=200,
             mimetype="application/json"
         )
-    elif reading_type == "pressure":
-        pres_reading_manager = PressureReadingManager(pres_readings_file)
-        reading = PressureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M"),
-                        DEFAULT_SEQ_NUM, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]),
-                        float(json_reading["max"]), json_reading["status"])
-        pres_reading_manager.add_reading(reading)
-        new_json_reading = reading.to_json()
-        response = app.response_class(
-            response=new_json_reading,
-            status=200,
-            mimetype="application/json"
-        )
-    else:
+    else: 
         response = app.response_class(status=400)
 
     return response
@@ -55,23 +39,16 @@ def update_reading(reading_type, seq_num):
     """ Updates a reading based on sequence number """
 
     json_reading = request.get_json(silent=True)
-    if reading_type == "temperature":
-        temp_reading_manager = TemperatureReadingManager(temp_readings_file)
-        reading = TemperatureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M:%S.%f"),
-                        seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]), 
-                        float(json_reading["max"]), json_reading["status"])
-        temp_reading_manager.update_reading(reading)
-        response = app.response_class(status=200)
-    elif reading_type == "pressure":
-        pres_reading_manager = PressureReadingManager(pres_readings_file)
-        reading = PressureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M"),
-                        seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]),
-                        float(json_reading["max"]), json_reading["status"])
-        pres_reading_manager.update_reading(reading)
+    objects = extract_data_from_json(reading_type, json_reading, seq_num)
+    reading_manager = objects[0]
+    reading = objects[1]
+
+    if reading:
+        reading_manager.update_reading(reading)
         response = app.response_class(status=200)
     else:
         response = app.response_class(status=400)
-    
+
     return response
 
 @app.route("/sensor/<string:reading_type>/reading/<int:seq_num>", methods=["DELETE"])
@@ -135,6 +112,24 @@ def get_all_readings(reading_type):
     )
     
     return response
+
+def extract_data_from_json(reading_type, json_reading, seq_num=0):
+    """ Creates and returns reading and reading manager from json object """
+
+    if reading_type == "temperature" and json_reading:
+        reading_manager = TemperatureReadingManager(temp_readings_file)
+        reading = TemperatureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M:%S.%f"),
+                        seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]), 
+                        float(json_reading["max"]), json_reading["status"])
+    elif reading_type == "pressure" and json_reading:
+        reading_manager = PressureReadingManager(pres_readings_file)
+        reading = PressureReading(datetime.datetime.strptime(json_reading["timestamp"], "%Y-%m-%d %H:%M"),
+                        seq_num, json_reading["model"], float(json_reading["min"]), float(json_reading["avg"]),
+                        float(json_reading["max"]), json_reading["status"])
+    else:
+        reading = None
+
+    return (reading_manager, reading)
     
 
 
