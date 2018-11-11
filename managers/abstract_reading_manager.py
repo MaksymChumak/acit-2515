@@ -3,9 +3,13 @@ import csv
 class AbstractReadingManager:
     """ Abstract Reading Manager """
 
+    FILENAME = "File Name"
+    SEQ_NUM = "Sequence Number"
+
     def __init__(self, filename):
         """ Initializes the reading manager """
-        
+
+        AbstractReadingManager._validate_string_input(AbstractReadingManager.FILENAME, filename)
         self._filename = filename
         self._readings = []
         self._read_reading_from_file()
@@ -37,7 +41,8 @@ class AbstractReadingManager:
 
     def delete_reading(self, seq_num):
         """ Deletes reading from a csv file """
-        
+
+        AbstractReadingManager._validate_int(AbstractReadingManager.SEQ_NUM, seq_num)
         count = 0
         for i, r in enumerate(self._readings):
             if r.get_sequence_num() == seq_num:
@@ -49,6 +54,7 @@ class AbstractReadingManager:
     def get_reading(self, seq_num):
         """ Returns reading that mathes sequence number from a scv file """
 
+        AbstractReadingManager._validate_int(AbstractReadingManager.SEQ_NUM, seq_num)
         reading = None
         for r in self._readings:
             if r.get_sequence_num() == seq_num:
@@ -99,3 +105,20 @@ class AbstractReadingManager:
         """ Abstract Method - Returns reading object formated as list """
 
         raise NotImplementedError("Must be implemented")
+
+    @staticmethod
+    def _validate_string_input(display_name, input_value):
+        """ Private helper to validate input values as not None or an empty string """
+
+        if input_value is None:
+            raise ValueError(display_name + " cannot be undefined.")
+
+        if input_value == "":
+            raise ValueError(display_name + " cannot be empty.")
+
+    @staticmethod
+    def _validate_int(display_name, input_value):
+        """ Private method to validate the input value is an integer type """
+
+        if input_value.isdigit() == False:
+            raise ValueError(display_name, " must be an integer type")
