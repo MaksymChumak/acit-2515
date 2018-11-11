@@ -47,7 +47,7 @@ def update_reading(reading_type, seq_num):
         if reading_manager.update_reading(reading):
             response = app.response_class(status=200)
         else:
-            response = app.response_class(status=403, response="Reading is not found")  
+            response = app.response_class(status=404, response="Reading is not found")  
     else:
         response = app.response_class(status=400)
 
@@ -67,7 +67,7 @@ def delete_reading(reading_type, seq_num):
     if reading_manager.delete_reading(seq_num):
         response = app.response_class(status=200)
     else:
-        response = app.response_class(status=403, response="Reading is not found")
+        response = app.response_class(status=404, response="Reading is not found")
     
     return response
 
@@ -91,7 +91,7 @@ def get_reading(reading_type, seq_num):
             mimetype="application/json"
         )
     else:
-        return app.response_class(status=403, response="Reading is not found")
+        return app.response_class(status=404, response="Reading is not found")
 
 @app.route("/sensor/<string:reading_type>/reading/all", methods=["GET"])
 def get_all_readings(reading_type):

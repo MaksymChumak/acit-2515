@@ -120,5 +120,5 @@ class AbstractReadingManager:
     def _validate_int(display_name, input_value):
         """ Private method to validate the input value is an integer type """
 
-        if input_value.isdigit() == False:
+        if type(input_value) != int:
             raise ValueError(display_name, " must be an integer type")
