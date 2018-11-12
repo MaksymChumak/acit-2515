@@ -1,8 +1,10 @@
+from managers.pressure_reading_manager import PressureReadingManager
 from unittest import TestCase
+from unittest.mock import MagicMock
+from unittest.mock import patch,mock_open
 import datetime
 import inspect
-from temperature_reading import TemperatureReading
-
+import csv
 
 class TestTemperatureReadingManager(TestCase):
     """ Unit Tests for the TemperatureReadingManager Class """
@@ -25,4 +27,3 @@ class TestTemperatureReadingManager(TestCase):
         """ Create a test fixture after each test method is run """
         
         self.logPoint()
-

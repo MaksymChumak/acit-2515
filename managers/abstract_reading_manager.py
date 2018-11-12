@@ -16,7 +16,7 @@ class AbstractReadingManager:
 
     def add_reading(self, reading):
         """ Adds reading to a csv file """
-
+        
         if not reading:
             return None
 
@@ -29,11 +29,10 @@ class AbstractReadingManager:
         self._readings.append(reading)
         self._write_reading_row(reading)
 
-
     def update_reading(self, reading):
         """ Updates reading in a csv file """
 
-        if type(reading) != reading.__class__:
+        if not self._readings or reading.__class__ != self._readings[0].__class__:
             return None
 
         count = 0
@@ -43,7 +42,6 @@ class AbstractReadingManager:
                 count += 1
         self._write_readings_to_file()
         return count
-
 
     def delete_reading(self, seq_num):
         """ Deletes reading from a csv file """
@@ -67,7 +65,6 @@ class AbstractReadingManager:
                 reading = r
         return reading
         
-    
     def get_all_readings(self):
         """ Returns a list of all readings """
 
