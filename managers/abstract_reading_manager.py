@@ -32,8 +32,8 @@ class AbstractReadingManager:
 
     def update_reading(self, reading):
         """ Updates reading in a csv file """
-        
-        if not reading:
+
+        if type(reading) != reading.__class__:
             return None
 
         count = 0

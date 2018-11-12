@@ -17,12 +17,9 @@ app = Flask(__name__)
 def add_reading(sensor_type):
     """ Assigns a sequence number to the reading and returns the created reading """
 
-    if sensor_type == "temperature":
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif sensor_type == "pressure":
-        reading_manager = PressureReadingManager(pres_readings_file)
-    else:
-        return app.response_class(status=400)    
+    reading_manager = create_reading_manager(sensor_type)
+    if not reading_manager:
+        return app.response_class(status=400)
 
     json_reading = request.get_json(silent=True)
     reading = create_reading(sensor_type, json_reading)
@@ -43,11 +40,8 @@ def add_reading(sensor_type):
 def update_reading(sensor_type, seq_num):
     """ Updates a reading based on sequence number """
 
-    if sensor_type == "temperature":
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif sensor_type == "pressure":
-        reading_manager = PressureReadingManager(pres_readings_file)
-    else:
+    reading_manager = create_reading_manager(sensor_type)
+    if not reading_manager:
         return app.response_class(status=400)
 
     json_reading = request.get_json(silent=True)
@@ -67,11 +61,8 @@ def update_reading(sensor_type, seq_num):
 def delete_reading(sensor_type, seq_num):
     """ Delete a reading from csv file based on sequence number """
 
-    if sensor_type == "temperature":
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif sensor_type == "pressure":
-        reading_manager = PressureReadingManager(pres_readings_file)
-    else:
+    reading_manager = create_reading_manager(sensor_type)
+    if not reading_manager:
         return app.response_class(status=400)
 
     if reading_manager.delete_reading(seq_num):
@@ -85,11 +76,8 @@ def delete_reading(sensor_type, seq_num):
 def get_reading(sensor_type, seq_num):
     """ Get a reading from csv file based on sequence number """
 
-    if sensor_type == "temperature":
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif sensor_type == "pressure":
-        reading_manager = PressureReadingManager(pres_readings_file)
-    else:
+    reading_manager = create_reading_manager(sensor_type)
+    if not reading_manager:
         return app.response_class(status=400)
 
     reading = reading_manager.get_reading(seq_num)
@@ -107,11 +95,8 @@ def get_reading(sensor_type, seq_num):
 def get_all_readings(sensor_type):
     """ Get a reading from csv file based on sequence number """
 
-    if sensor_type == "temperature":
-        reading_manager = TemperatureReadingManager(temp_readings_file)
-    elif sensor_type == "pressure":
-        reading_manager = PressureReadingManager(pres_readings_file)
-    else:
+    reading_manager = create_reading_manager(sensor_type)
+    if not reading_manager:
         return app.response_class(status=400)
     
     readings = reading_manager.get_all_readings()
@@ -131,8 +116,21 @@ def get_all_readings(sensor_type):
     
     return response
 
+def create_reading_manager(sensor_type):
+    """ Returns reading manager if valid input, None otherwise """
+
+    if sensor_type == "temperature":
+        reading_manager = TemperatureReadingManager(temp_readings_file)
+    elif sensor_type == "pressure":
+        reading_manager = PressureReadingManager(pres_readings_file)
+    else:
+        reading_manager = None
+    
+    return reading_manager
+
+
 def create_reading(sensor_type, json_reading, seq_num=0):
-    """ Creates and returns tuple containing reading and reading manager """
+    """ Returns reading if valid input, None otherwise """
 
     if sensor_type == "temperature":    
         try:
