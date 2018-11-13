@@ -38,7 +38,6 @@ class PressureReadingManager(AbstractReadingManager):
         try:
             reading_timestamp = str(reading.get_timestamp())
             reading_timestamp = reading_timestamp[:-3]
-            print(reading_timestamp)
             pres_reading = [reading_timestamp, reading.get_sensor_model(), 
                             str(reading.get_sequence_num()), str(reading.get_min_value()), 
                             str(reading.get_avg_value()), str(reading.get_max_value()), reading.get_status()]
