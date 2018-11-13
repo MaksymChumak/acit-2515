@@ -7,7 +7,7 @@ class PressureReadingManager(AbstractReadingManager):
     """ Pressure Reading Manager """
 
     TIMESTAMP_INDEX = 0
-    SENSOR_NAME_INDEX = 1
+    SENSOR_MODEL_INDEX = 1
     SEQ_NUM_INDEX = 2
     MIN_INDEX = 3
     AVG_INDEX = 4
@@ -19,10 +19,10 @@ class PressureReadingManager(AbstractReadingManager):
         """ Loads list into a PressureReading object """
 
         try:
-            reading_datetime = datetime.datetime.strptime(row[PressureReadingManager.TIMESTAMP_INDEX], "%Y-%m-%d %H:%M:%S")
-            pres_reading =  PressureReading(reading_datetime,
+            reading_datetime = datetime.datetime.strptime(row[PressureReadingManager.TIMESTAMP_INDEX], "%Y-%m-%d %H:%M")
+            pres_reading = PressureReading(reading_datetime,
                                 int(row[PressureReadingManager.SEQ_NUM_INDEX]),
-                                row[PressureReadingManager.SENSOR_NAME_INDEX],
+                                row[PressureReadingManager.SENSOR_MODEL_INDEX],
                                 float(row[PressureReadingManager.MIN_INDEX]),
                                 float(row[PressureReadingManager.AVG_INDEX]),
                                 float(row[PressureReadingManager.MAX_INDEX]),
@@ -36,7 +36,10 @@ class PressureReadingManager(AbstractReadingManager):
         """ Returns reading object formated as list of strings """
 
         try:
-            pres_reading = [str(reading.get_timestamp()), reading.get_sensor_model(), 
+            reading_timestamp = str(reading.get_timestamp())
+            reading_timestamp = reading_timestamp[:-3]
+            print(reading_timestamp)
+            pres_reading = [reading_timestamp, reading.get_sensor_model(), 
                             str(reading.get_sequence_num()), str(reading.get_min_value()), 
                             str(reading.get_avg_value()), str(reading.get_max_value()), reading.get_status()]
         except:
